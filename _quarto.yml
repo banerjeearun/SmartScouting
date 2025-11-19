@@ -6,11 +6,10 @@ execute:
   echo: true
 
 book:
-  title: "YOUR PROJECT TITLE"
+  title: "SMART SCOUTING FOR UNDERVALUED PLAYERS"
   author:
-    - AUTHOR1 (UNI1)
-    - AUTHOR2 (UNI2)
-  repo-url: https://github.com/YOUR_GITHUB_ACCOUNT/REPO_NAME
+    - Arunava Banerjee (ab6130)
+  repo-url: https://github.com/banerjeearun/SmartScouting
   date: today
   page-footer:
     right: |
