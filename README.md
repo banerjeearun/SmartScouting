@@ -60,14 +60,15 @@ To make different players comparable, we engineered several key features during 
 
 ## Installation & Usage
 
-1. Clone the Repo - git clone https://github.com/banerjeearun/SmartScouting.git
+1. Clone the Repo 
+    - git clone https://github.com/banerjeearun/SmartScouting.git
 
 2. Data Preparation (Python)
 
 Navigate to the data/ folder to review or run the Python cleaning scripts if you wish to rebuild the dataset from raw sources.
 
-cd data
-python cleaning_script.py
+    - cd data
+    - python cleaning_script.py
 
 3. Run the Analysis (R)
 
