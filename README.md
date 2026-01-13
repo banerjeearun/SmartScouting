@@ -37,3 +37,57 @@ The analysis is built on a custom dataset (epl_player_data_final_v2.csv) contain
 * Cleaning & Transformation: All data cleaning, merging, and initial preprocessing were handled using Python.
 
 Location: The raw Python scripts used for this ETL (Extract, Transform, Load) process are located directly in the data/ folder.
+
+## Feature Engineering (R)
+
+To make different players comparable, we engineered several key features during the analysis phase:
+
+* Normalization: All volume stats converted to Per 90 rates.
+
+* Tactical Vectors: Aggregated raw stats into 5 composite scores: Attacking, Progression, Creation, Defensive, Mistakes.
+
+* Z-Score Standardization: All metrics centered around the league average (0) to measure performance in Standard Deviations.
+
+* Undervaluation Delta: Calculated as (Performance Percentile - Cost Percentile)
+
+## Tech Stack
+
+* Data Cleaning (ETL): Python (Pandas, NumPy)
+
+* Analysis & Visualization: R (Tidyverse, ggplot2, ggrepel, GGally, prcomp)
+
+* Scraping: worldfootballR (R) / BeautifulSoup (Python)
+
+## Installation & Usage
+
+1. Clone the Repo - git clone https://github.com/banerjeearun/SmartScouting.git
+
+2. Data Preparation (Python)
+
+Navigate to the data/ folder to review or run the Python cleaning scripts if you wish to rebuild the dataset from raw sources.
+
+cd data
+python cleaning_script.py
+
+3. Run the Analysis (R)
+
+Load the project in RStudio.
+
+Run the scripts under results.qmd for the visualizations.
+
+## References
+
+This project relies on data from the following sources. Please refer to them for the original raw statistics and market values.
+
+* FBref: fbref.com (Data provided by StatsBomb)
+
+* Transfermarkt: transfermarkt.com
+
+## Contact
+
+Arunava Banerjee - banerjeearunava2000@gmail.com
+
+Project Focus: Sports Analytics , Exploratory Data Analysis & Visualization
+
+Tools: R, Python, SQL
+
