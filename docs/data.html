@@ -20,6 +20,40 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -144,7 +178,9 @@ ul.task-list li input[type="checkbox"] {
    
   <ul>
   <li><a href="#description" id="toc-description" class="nav-link active" data-scroll-target="#description"><span class="header-section-number">2.1</span> Description</a></li>
-  <li><a href="#missing-value-analysis" id="toc-missing-value-analysis" class="nav-link" data-scroll-target="#missing-value-analysis"><span class="header-section-number">2.2</span> Missing value analysis</a></li>
+  <li><a href="#extraction-merging-strategy" id="toc-extraction-merging-strategy" class="nav-link" data-scroll-target="#extraction-merging-strategy"><span class="header-section-number">2.2</span> Extraction &amp; Merging Strategy</a></li>
+  <li><a href="#feature-engineering" id="toc-feature-engineering" class="nav-link" data-scroll-target="#feature-engineering"><span class="header-section-number">2.3</span> Feature Engineering</a></li>
+  <li><a href="#missing-value-analysis" id="toc-missing-value-analysis" class="nav-link" data-scroll-target="#missing-value-analysis"><span class="header-section-number">2.4</span> Missing value analysis</a></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/banerjeearun/SmartScouting/edit/main/data.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/banerjeearun/SmartScouting/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
@@ -172,9 +208,83 @@ ul.task-list li input[type="checkbox"] {
 
 <section id="description" class="level2" data-number="2.1">
 <h2 data-number="2.1" class="anchored" data-anchor-id="description"><span class="header-section-number">2.1</span> Description</h2>
+<p>The dataset constructed for this analysis provides a granular view of player performance in the English Premier League for the 2024-25 season, containing 297 unique player entries with 125 distinct attributes. To ensure a holistic evaluation—combining on-pitch output with financial cost—data was aggregated from two primary sources:</p>
+<ul>
+<li><p>Performance Data (FBref via StatsBomb): Detailed match statistics were sourced covering five key domains:</p></li>
+<li><p>Shooting: Goals, Shots, Expected Goals (xG), npxG.</p></li>
+<li><p>Passing: Completion rates (Short/Med/Long), Progressive Passes, Key Passes.</p></li>
+<li><p>Possession: Carries, Progressive Distance, Take-ons, Miscontrols.</p></li>
+<li><p>Defense: Tackles, Interceptions, Blocks, Clearances.</p></li>
+<li><p>Creation: Shot-Creating Actions (SCA), Expected Assists (xAG).</p></li>
+<li><p>Financial Data (Transfermarkt): Player market valuations (market_value_eur) and standardized positions were sourced to provide the economic context required for the efficiency analysis.</p></li>
+</ul>
+<p>Data:</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/epl_player_data_final_v2.csv"</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(df)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 125
+  player_name      nation_raw position club       age  born nineties goals shots
+  &lt;chr&gt;            &lt;chr&gt;      &lt;chr&gt;    &lt;chr&gt;    &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+1 Tyler Adams      us&nbsp;USA     MF       Bournem…    25  1999     21.8     0     9
+2 Tosin Adarabioyo eng&nbsp;ENG    DF       Chelsea     26  1997     15.7     1    13
+3 Simon Adingra    ci&nbsp;CIV     FW,MF    Brighton    22  2002     12.2     2    33
+4 Emmanuel Agbadou ci&nbsp;CIV     DF       Wolves      27  1997     15.7     1     7
+5 Ola Aina         ng&nbsp;NGA     DF       Nottm F…    27  1996     33.3     2    11
+6 Rayan Aït-Nouri  dz&nbsp;ALG     DF       Wolves      23  2001     34.5     4    36
+# ℹ 116 more variables: shots_on_target &lt;dbl&gt;, `SoT%` &lt;dbl&gt;, shots_per90 &lt;dbl&gt;,
+#   sot_per90 &lt;dbl&gt;, goals_per_shot &lt;dbl&gt;, goals_per_sot &lt;dbl&gt;,
+#   avg_shot_distance &lt;dbl&gt;, free_kicks &lt;dbl&gt;, penalty_goals &lt;dbl&gt;,
+#   penalty_attempts &lt;dbl&gt;, xg &lt;dbl&gt;, npxg &lt;dbl&gt;, npxg_per_shot &lt;dbl&gt;,
+#   g_minus_xg &lt;dbl&gt;, npg_minus_npxg &lt;dbl&gt;, nation_code &lt;chr&gt;, season &lt;chr&gt;,
+#   league &lt;chr&gt;, player_key &lt;chr&gt;, club_key &lt;chr&gt;, position_group &lt;chr&gt;,
+#   nation &lt;chr&gt;, age_pass &lt;dbl&gt;, nineties_pass &lt;dbl&gt;, …</code></pre>
+</div>
+</div>
 </section>
-<section id="missing-value-analysis" class="level2" data-number="2.2">
-<h2 data-number="2.2" class="anchored" data-anchor-id="missing-value-analysis"><span class="header-section-number">2.2</span> Missing value analysis</h2>
+<section id="extraction-merging-strategy" class="level2" data-number="2.2">
+<h2 data-number="2.2" class="anchored" data-anchor-id="extraction-merging-strategy"><span class="header-section-number">2.2</span> Extraction &amp; Merging Strategy</h2>
+<p>Data was likely extracted using the worldfootballR library (or similar scraper) to pull season-level tables. A multi-stage merge was performed:</p>
+<p>*Primary Key Creation: A player_key was generated (lowercased player names) to join the disparate statistical tables (Passing, Defense, Possession, etc.) into a single performance dataframe.</p>
+<p>*Financial Integration: A fuzzy matching merge was performed to link the performance data with Transfermarkt financial records (player_name_tm), reconciling naming differences (e.g., matching “Rodri” with “Rodrigo Hernandez Cascante”).</p>
+<p>*Final Cleaning: The resulting dataset (epl_player_data_final_v2.csv) represents the consolidated view, filtered to exclude players with insufficient minutes to ensure statistical significance.</p>
+</section>
+<section id="feature-engineering" class="level2" data-number="2.3">
+<h2 data-number="2.3" class="anchored" data-anchor-id="feature-engineering"><span class="header-section-number">2.3</span> Feature Engineering</h2>
+<p>To transform raw counts into the “Moneyball” metrics used in the graphs, extensive feature engineering was applied:</p>
+<ul>
+<li><p>Normalization &amp; Standardization</p>
+<ul>
+<li><p>Composite Vectors: Raw metrics were aggregated into five distinct “Tactical Vectors” to capture a player’s total contribution in specific phases of play:</p>
+<ul>
+<li><p>raw_attacking: Composite of npxG, shots, and touches in the attacking penalty area.</p></li>
+<li><p>raw_progression: Composite of progressive carries and progressive passes.</p></li>
+<li><p>raw_creation: Composite of Key Passes and Expected Assists (xAG).</p></li>
+<li><p>raw_defensive: Composite of tackles, interceptions, and blocks.</p></li>
+<li><p>raw_mistakes: Composite of dispossessions, miscontrols, and errors leading to shots.</p></li>
+</ul></li>
+<li><p>Z-Scores (z_raw_…): To make these distinct units comparable, each vector was standardized into a Z-score (e.g., z_raw_attacking). This centers the data around the league average (0), allowing for direct comparison across different positions.</p></li>
+</ul></li>
+<li><p>Efficiency &amp; Valuation Metrics</p>
+<ul>
+<li><p>Performance Index: A weighted global score (performance_index) was calculated based on the cumulative Z-scores.</p></li>
+<li><p>Percentile Ranks: Both performance and cost were converted into league-wide percentile ranks (perf_rank_pct and value_rank_pct).</p></li>
+<li><p>Undervaluation Delta: A custom metric calculated as perf_rank_pct - value_rank_pct. A positive delta indicates a player whose performance rank significantly exceeds their cost rank (e.g., “Performance: 90th percentile” vs “Cost: 40th percentile” = Delta of +50).</p></li>
+<li><p>Valuation Category: Players were explicitly labeled as Undervalued, Fair Value, or Overvalued based on their Delta score.</p></li>
+</ul></li>
+</ul>
+</section>
+<section id="missing-value-analysis" class="level2" data-number="2.4">
+<h2 data-number="2.4" class="anchored" data-anchor-id="missing-value-analysis"><span class="header-section-number">2.4</span> Missing value analysis</h2>
+<ul>
+<li><p>Market Values: The dataset contains market_value_eur for all entries, implying that players with missing financial data (often academy prospects) were likely excluded or imputed during the pre-processing stage.</p></li>
+<li><p>Positional N/As: Statistical fields relevant to specific positions (e.g., save_percentage for midfielders) are naturally null or zero; these were handled by replacing NaNs with 0 where appropriate (e.g., a defender having 0 shots is a valid data point, not a missing one).</p></li>
+<li><p>Sample Size Filter: The dataset size (297 players) indicates that a “minutes played” filter (likely &gt;450 minutes) was applied to remove statistical noise from fringe players.</p></li>
+</ul>
 
 
 </section>

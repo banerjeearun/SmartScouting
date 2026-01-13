@@ -2,4 +2,74 @@
 
 ## Description
 
+The dataset constructed for this analysis provides a granular view of player performance in the English Premier League for the 2024-25 season, containing 297 unique player entries with 125 distinct attributes. To ensure a holistic evaluation—combining on-pitch output with financial cost—data was aggregated from two primary sources:
+
+* Performance Data (FBref via StatsBomb): Detailed match statistics were sourced covering five key domains:
+
+- Shooting: Goals, Shots, Expected Goals (xG), npxG.
+
+- Passing: Completion rates (Short/Med/Long), Progressive Passes, Key Passes.
+
+- Possession: Carries, Progressive Distance, Take-ons, Miscontrols.
+
+- Defense: Tackles, Interceptions, Blocks, Clearances.
+
+- Creation: Shot-Creating Actions (SCA), Expected Assists (xAG).
+
+* Financial Data (Transfermarkt): Player market valuations (market_value_eur) and standardized positions were sourced to provide the economic context required for the efficiency analysis.
+
+Data:
+
+```{r}
+library(tidyverse)
+df <- read_csv("data/epl_player_data_final_v2.csv")
+head(df)
+```
+
+## Extraction & Merging Strategy
+
+Data was likely extracted using the worldfootballR library (or similar scraper) to pull season-level tables. A multi-stage merge was performed:
+
+*Primary Key Creation: A player_key was generated (lowercased player names) to join the disparate statistical tables (Passing, Defense, Possession, etc.) into a single performance dataframe.
+
+*Financial Integration: A fuzzy matching merge was performed to link the performance data with Transfermarkt financial records (player_name_tm), reconciling naming differences (e.g., matching "Rodri" with "Rodrigo Hernandez Cascante").
+
+*Final Cleaning: The resulting dataset (epl_player_data_final_v2.csv) represents the consolidated view, filtered to exclude players with insufficient minutes to ensure statistical significance.
+
+## Feature Engineering
+
+To transform raw counts into the "Moneyball" metrics used in the graphs, extensive feature engineering was applied:
+
+* Normalization & Standardization
+
+    + Composite Vectors: Raw metrics were aggregated into five distinct "Tactical Vectors" to capture a player's total contribution in specific phases of play:
+
+        - raw_attacking: Composite of npxG, shots, and touches in the attacking penalty area.
+
+        - raw_progression: Composite of progressive carries and progressive passes.
+
+        - raw_creation: Composite of Key Passes and Expected Assists (xAG).
+
+        - raw_defensive: Composite of tackles, interceptions, and blocks.
+
+        - raw_mistakes: Composite of dispossessions, miscontrols, and errors leading to shots.
+
+    + Z-Scores (z_raw_...): To make these distinct units comparable, each vector was standardized into a Z-score (e.g., z_raw_attacking). This centers the data around the league average (0), allowing for direct comparison across different positions.
+
+* Efficiency & Valuation Metrics
+
+    + Performance Index: A weighted global score (performance_index) was calculated based on the cumulative Z-scores.
+
+    + Percentile Ranks: Both performance and cost were converted into league-wide percentile ranks (perf_rank_pct and value_rank_pct).
+
+    + Undervaluation Delta: A custom metric calculated as perf_rank_pct - value_rank_pct. A positive delta indicates a player whose performance rank significantly exceeds their cost rank (e.g., "Performance: 90th percentile" vs "Cost: 40th percentile" = Delta of +50).
+
+    + Valuation Category: Players were explicitly labeled as Undervalued, Fair Value, or Overvalued based on their Delta score.
+
 ## Missing value analysis
+
+* Market Values: The dataset contains market_value_eur for all entries, implying that players with missing financial data (often academy prospects) were likely excluded or imputed during the pre-processing stage.
+
+* Positional N/As: Statistical fields relevant to specific positions (e.g., save_percentage for midfielders) are naturally null or zero; these were handled by replacing NaNs with 0 where appropriate (e.g., a defender having 0 shots is a valid data point, not a missing one).
+
+* Sample Size Filter: The dataset size (297 players) indicates that a "minutes played" filter (likely >450 minutes) was applied to remove statistical noise from fringe players.
